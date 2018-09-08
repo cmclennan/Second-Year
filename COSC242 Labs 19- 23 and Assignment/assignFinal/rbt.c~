@@ -1,0 +1,209 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "mylib.h"
+#include "rbt.h"
+
+#define IS_BLACK(x) ((NULL ==(x)) || (BLACK == (x)->colour))
+#define IS_RED(x) ((NULL !=(x)) && (RED == (x)->colour))
+
+typedef enum { RED, BLACK } rbt_colour;
+
+struct rbt_node {
+    char *key;
+    rbt_colour colour;
+    rbt left;
+    rbt right;
+};
+
+static rbt right_rotate(rbt b){
+    rbt temp = b;
+    b = b->left;
+    temp->left = b->right;
+    b->right = temp;
+    return b;
+}
+
+static rbt left_rotate(rbt b){
+    rbt temp = b;
+    b = b->right;
+    temp->right = b->left;
+    b->left = temp;
+    return b;
+}
+
+static rbt rbt_fix(rbt b){
+    if(b == NULL){
+        return NULL;
+    }
+
+    if(IS_RED(b->left) && IS_RED(b->left->left)){
+        if(IS_RED(b->right)){
+            b->colour = RED;
+            b->left->colour = BLACK;
+            b->right->colour = BLACK;
+        }else{
+            b = right_rotate(b);
+            b->colour = BLACK;
+            b->right->colour = RED;
+        }
+        b->left = rbt_fix(b->left);
+    }
+
+    if(IS_RED(b->left) && IS_RED(b->left->right)){
+        if(IS_RED(b->right)){
+            b->colour = RED;
+            b->left->colour = BLACK;
+            b->right->colour = BLACK;
+        }else{
+            b->left = left_rotate(b->left);
+            b = right_rotate(b);
+            b->colour = BLACK;
+            b->right->colour = RED;
+        }
+        b->left = rbt_fix(b->left);
+    }
+
+
+    if(IS_RED(b->right) && IS_RED(b->right->left)){
+        if(IS_RED(b->left)){
+            b->colour = RED;
+            b->left->colour = BLACK;
+            b->right->colour = BLACK;
+        }else{
+            b->right = right_rotate(b->right);
+            b = left_rotate(b);
+            b->colour = BLACK;
+            b->left->colour = RED;
+        }
+        b->right = rbt_fix(b->right);
+    }
+    if(IS_RED(b->right) && IS_RED(b->right->right)){
+        if(IS_RED(b->left)){
+            b->colour = RED;
+            b->left->colour = BLACK;
+            b->right->colour = BLACK;
+        }else{
+            b = left_rotate(b);
+            b->colour = BLACK;
+            b->left->colour = RED;
+        }
+        b->right = rbt_fix(b->right);
+    } 
+    return b;
+
+
+}   
+
+rbt rbt_new(){
+    rbt b = emalloc(sizeof *b);
+    b->colour = BLACK;
+    b->key = NULL;
+    b->left = NULL;
+    b->right = NULL;
+    return b;
+}
+
+void rbt_print(rbt b, FILE *stream){
+    if(b == NULL){
+        return;
+    }
+    if(IS_BLACK(b)){        
+        fprintf(stream,"black:\t%s\n", b->key);
+    }else if(IS_RED(b)){
+        fprintf(stream,"red:\t%s\n", b->key);
+    }
+    rbt_print(b->left, stream);
+    rbt_print(b->right, stream);
+
+}
+
+
+int rbt_search(rbt b, char *find){
+    int comparison;
+    if (b == NULL){
+        return 0;        
+    }
+    comparison = strcmp(b->key, find);
+    if(comparison == 0){
+        return 1;
+    }else if(comparison > 0){
+        return rbt_search(b->left, find);
+    }else if(comparison < 0){
+        return rbt_search(b->right, find);
+    }
+    return 0;
+}
+
+rbt rbt_insert(rbt b, char *str){
+    int comparison;
+    /*If no key, we can place str here, the only rbt with a
+      NULL key which isn't NULL itself is the root of the RBT. */
+    if(b == NULL){
+        rbt b = emalloc(sizeof *b);              
+        b->key = emalloc((strlen(str) + 1) * sizeof (*str));
+        strcpy(b->key,str);
+        b->left = NULL;
+        b->right = NULL;
+        b->colour = RED;
+        return b;
+    }
+    /*special insertion for the root */
+    if(b->key == NULL){
+        b->key = emalloc((strlen(str) + 1) *sizeof (*str));
+        strcpy(b->key, str);
+        return b;
+    }
+    
+        
+    
+    comparison = strcmp(b->key, str);
+    /*key is already here */   
+    if(comparison > 0){ /*key to add is less than current */ 
+        b->left = rbt_insert(b->left, str);
+    }else if(comparison <= 0){ /*key to add is greater */
+        b->right = rbt_insert(b->right, str);
+    }
+    b = rbt_fix(b);
+    return b;
+}
+
+void rbt_inorder(rbt b, void f(char *str)){
+    if(b == NULL){
+        return;
+    }
+    rbt_inorder(b->left, f);
+    f(b->key);
+    rbt_inorder(b->right, f);
+}
+
+void rbt_preorder(rbt b, void f(char *str)){
+    if(b == NULL){
+        return;
+    }
+    f(b->key);
+    rbt_preorder(b->left, f);
+    rbt_preorder(b->right, f);
+    
+}
+
+rbt rbt_find_left_root(rbt b){
+    if(b == NULL){
+        return b;
+    }
+    else{
+        rbt_find_left_root(b->left);
+    }
+    return NULL;
+}               
+
+rbt rbt_free(rbt b){
+    if(b == NULL){
+        return NULL;
+    }
+    b->left = rbt_free(b->left);
+    b->right = rbt_free(b->right);
+    free(b->key);
+    free(b);
+    return NULL;
+}
