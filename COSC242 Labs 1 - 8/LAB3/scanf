@@ -1,0 +1,12 @@
+Scanf takes a pointer as an argument, thereby meaning it needs the addressOf operator as the address is the pointer.
+
+
+	for(i = 0; i < array_size; i++) {
+		count = 1;  
+        for(j = i+1; j < array_size; j++) {  
+            if(my_dynamic_array[i]==my_dynamic_array[j]) {   
+                count++;
+            }  
+        }
+           	printf("there are %d counts of %d in this array\n", count, my_dynamic_array[i]);
+    }

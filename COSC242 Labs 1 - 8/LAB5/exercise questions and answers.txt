@@ -1,0 +1,29 @@
+a) in order to be able to reuse the code?
+
+b)char
+
+c)so that we get the null bit to be counted
+
+d) yes, assuming it is either in a strcpy or is repositioning pointers, a simple swap method won’t work
+
+e) because the limit is 80, and indexing starts at 0, so there are 80 items ranging from 0 up to 79
+
+f)
+
+
+
+(a) Notice that we have moved the memory allocation and subsequent error checking
+code into a separate emalloc function. What is the point of doing this?
+
+(b) What is the type of wordlist[0][0]?
+
+
+(c) Why do we allocate (strlen(word) + 1) of those rather than just strlen(word)?
+
+(d) Is the statement wordlist[i] = wordlist[j] correct (assuming i and j are inrange
+integers)?
+
+(e) Why do you think there is a 79 between the % and s in the scanf format string?
+
+(f) Draw a diagram of wordlist after the program has read in the words “do”,
+“cats”, “eat”, “bats”
